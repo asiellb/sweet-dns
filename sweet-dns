@@ -1,0 +1,156 @@
+#! /bin/bash
+# sweet-dns #
+# Shell script to compress pdf using ghostscript lib.
+# Set script debug
+# set -x
+##### Definitions
+prefix=$(brew --prefix)
+dnsdir=$prefix/etc/dnsmasq/dnsmasq.d
+tmpfile=$prefix/etc/dnsmasq/dnsmasq.d/tmp
+configfile=$prefix/etc/dnsmasq.conf
+configbackup=$prefix/etc/dnsmasq/dnsmasq.conf.bak
+configdefault=$prefix/etc/dnsmasq/dnsmasq.conf.default
+configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
+##### Functions
+usage() {
+    #sweet-dns help
+    echo -e "\033[1mHelp\033[0m \n
+        sweet-dns [ -d [domain1] -d [domain2] -d [domainN] ] | -h ] \n
+    \033[1m**\033[0m The input domain(s) name will be added to your resolvers and DNS.\n"
+}
+config() {
+    #config dnsmasq
+    if [[ ! -d $dnsdir ]]; then
+        bash -c "mkdir -v $dnsdir"
+    fi
+    if [[ -f $configfile ]]; then
+        if [[ ! -f $configdefault ]]; then bash -c "cp $configfile $configdefault"; fi
+    else
+        echo "ERROR - dnsmasq configuration: file $configfile not found!, please reinstall dnsmasq!"
+        if [[ -f $configbackup ]]; then bash -c "rm $configbackup"; fi
+        exit 1
+    fi
+    for config in "${configurations[@]}"; do
+        pattern=$(echo "$config" | tr -d '"')
+        output=$(bash -c "awk '1;/#${pattern%%=*}=/ && !found { for (i = 2; i <= NF; i++); print $config; found=1; next }' $configfile > $tmpfile && mv $tmpfile $configfile" 2>&1)
+    done
+    if [[ ! $? -eq 0 ]]; then
+        echo "ERROR - dnsmasq configuration: "$output
+        exit 1
+    else
+        bash -c "cp $configfile $configbackup"
+    fi
+}
+main() {
+    #add resolver
+    if [[ ! -f /etc/resolver/"$domain" ]]; then
+        if [[ ! -d /etc/resolver ]]; then
+            sudo bash -c "mkdir -v /etc/resolver"
+        fi
+        sudo bash -c "touch /etc/resolver/$domain"
+        resolver=true
+    else
+        if ! grep -q "nameserver 127.0.0.1" /etc/resolver/"$domain"; then
+            sudo bash -c "rm /etc/resolver/$domain"
+            sudo bash -c "echo nameserver 127.0.0.1 >> /etc/resolver/$domain"
+        fi
+    fi
+    #add registries
+    if [[ ! -f  $dnsdir/registries.conf ]]; then
+        touch $dnsdir/registries.conf
+    fi
+    if grep -q "address=/.$domain/127.0.0.1" $dnsdir/registries.conf; then
+        existingdomain+=($domain)
+    else
+        sudo bash -c "echo address=/.$domain/127.0.0.1 >> $dnsdir/registries.conf"
+        newdomain+=($domain)
+    fi
+    #restart service
+    if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
+        sudo launchctl stop homebrew.mxcl.dnsmasq
+        sudo launchctl start homebrew.mxcl.dnsmasq
+    else
+        sudo brew services restart dnsmasq
+    fi
+}
+##### Main
+for arg in "$@"; do
+  shift
+  case "$arg" in
+    "--help")       set -- "$@" "-h" ;;
+    "--domain")     set -- "$@" "-d" ;;
+    "--?")          set -- "$@" "-?" ;;
+    *)              set -- "$@" "$arg"
+  esac
+done
+OPTIND=1
+while getopts ":h:d:?" opt; do
+  case "$opt" in
+    "h")    usage
+            exit 0
+            ;;
+    "d")    domains+=("$OPTARG")
+            ;;
+    "?")    usage
+            exit 1
+            ;;
+    *)      usage
+            exit 1
+  esac
+done
+shift $(expr $OPTIND - 1)
+if [[ ${#domains[@]}  -gt 0 ]]; then
+    if [[ ! -f $configbackup ]]; then
+        config
+    fi
+else
+    echo -e "\033[1mWarning\033[0m \n
+        At least an input domain is required to continue! \n
+            Use \033[1msweet-dns -h\033[0m for more help. \n"
+    exit 1
+fi
+for domain in "${domains[@]}"; do main; done
+if [[ $? -eq 0 ]]; then
+    if [[ $newdomain ]]; then
+        if [[ ${#newdomain[@]}  > 1 ]]; then
+            for domain in "${newdomain[@]}"; do
+                if [[ $newentry ]]; then
+                    newentry=$newentry" & "$domain
+                else
+                    newentry=" $domain"
+                fi
+                newnumber="s"
+            done
+        else
+            newentry=" $newdomain"
+            newnumber=""
+        fi
+        echo -e "\033[1mNotify\033[0m \n
+        Domain$newnumber\033[1m$newentry\033[0m successfully added. \n"
+    fi
+    if [[ $existingdomain ]]; then
+        if [[ ${#existingdomain[@]}  > 1 ]]; then
+            for domain in "${existingdomain[@]}"; do
+                if [[ $existentry ]]; then
+                    existentry=$existentry" & "$domain
+                else
+                    existentry=" $domain"
+                fi
+                existnumber="s"
+            done
+        else
+            existentry=" $existingdomain"
+            existnumber=""
+        fi
+        if [[ $resolver == true ]]; then
+            message=", resolvers was fixed!"
+        else
+            message="!"
+        fi
+        echo -e "\033[1mWarning\033[0m \n
+        Domain$existnumber\033[1m$existentry\033[0m already exist$message. \n"
+    fi
+    exit 0
+else
+    exit 1
+fi
