@@ -6,7 +6,8 @@
 ##### Definitions
 prefix=$(brew --prefix)
 dnsdir=$prefix/etc/dnsmasq/dnsmasq.d
-tmpfile=$prefix/etc/dnsmasq/dnsmasq.d/tmp
+tmpdnsfile=$prefix/etc/dnsmasq/dnsmasq.d/tmp
+tmpregfile=/private/tmp/registries.tmp
 configfile=$prefix/etc/dnsmasq.conf
 configbackup=$prefix/etc/dnsmasq/dnsmasq.conf.bak
 configdefault=$prefix/etc/dnsmasq/dnsmasq.conf.default
@@ -32,7 +33,7 @@ config() {
     fi
     for config in "${configurations[@]}"; do
         pattern=$(echo "$config" | tr -d '"')
-        output=$(bash -c "awk '1;/#${pattern%%=*}=/ && !found { for (i = 2; i <= NF; i++); print $config; found=1; next }' $configfile > $tmpfile && mv $tmpfile $configfile" 2>&1)
+        output=$(bash -c "awk '1;/#${pattern%%=*}=/ && !found { for (i = 2; i <= NF; i++); print $config; found=1; next }' $configfile > $tmpdnsfile && mv $tmpdnsfile $configfile" 2>&1)
     done
     if [[ ! $? -eq 0 ]]; then
         echo "ERROR - dnsmasq configuration: "$output
@@ -78,8 +79,8 @@ del () {
         while read -r line
         do
           [[ ! $line =~ $pattern ]] && echo "$line"
-        done < $fileregistries > o
-        mv o $fileregistries
+        done < $fileregistries > $tmpregfile
+        mv $tmpregfile $fileregistries
     fi
     deletedomain+=($domain)
 }
