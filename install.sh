@@ -1,7 +1,8 @@
 #!/bin/bash
 # Set script debug
 # set -x
-DST=/usr/local/bin/sweet-dns
+dst=/usr/local/bin/sweet-dns
+tmpdst=/private/tmp/sweet-dns
 ##Check dependencies
 which brew > /dev/null
 if [[ $? -eq 1 ]]; then
@@ -18,16 +19,26 @@ else
     fi
     # output=$(sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist)
     which sweet-dns > /dev/null
+
     if [[ $? -eq 1 ]]; then
         echo -e "\033[1minfo >>> \033[0m Running sweet-dns installation..."
-        curl -L https://git.io/fj9Jz -o $DST -s
-        chmod +x $DST
+        curl -L https://git.io/fj9Jz -o $dst -s > /dev/null
+        chmod +x $dst
         echo -e "\033[1minfo >>> \033[0m Installation successfull! \n
         For help use \033[1msweet-dns -h\033[0m \n "
         exit 0
     else
-        echo -e "\033[1minfo >>> \033[0msweet-dns already installed on your system! \n
+        curl -L https://git.io/fj9Jz -o $tmpdst -s > /dev/null
+        if cmp $tmpdst $dst > /dev/null; then
+            echo -e "\033[1minfo >>> \033[0msweet-dns already installed on your system! \n
         For help use \033[1msweet-dns -h\033[0m \n "
-        exit 1
+            exit 1
+        else
+            echo -e "\033[1minfo >>> \033[0m Updating sweet-dns installation..."
+            cp $tmpdst $dst
+            echo -e "\033[1minfo >>> \033[0m Update successfull! \n
+        For help use \033[1msweet-dns -h\033[0m \n "
+            exit 0
+        fi
     fi
 fi

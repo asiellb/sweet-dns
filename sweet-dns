@@ -2,7 +2,7 @@
 # sweet-dns #
 # Shell script to compress pdf using ghostscript lib.
 # Set script debug
-set -x
+# set -x
 ##### Definitions
 prefix=$(brew --prefix)
 dnsdir=$prefix/etc/dnsmasq/dnsmasq.d
