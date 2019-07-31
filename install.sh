@@ -26,19 +26,18 @@ else
         chmod +x $dst
         echo -e "\033[1minfo >>> \033[0m Installation successfull! \n
         For help use \033[1msweet-dns -h\033[0m \n "
-        exit 0
     else
         curl -L https://git.io/fj9Jz -o $tmpdst -s > /dev/null
         if cmp $tmpdst $dst > /dev/null; then
             echo -e "\033[1minfo >>> \033[0msweet-dns already installed on your system and up to date! \n
         For help use \033[1msweet-dns -h\033[0m \n "
-            exit 1
         else
             echo -e "\033[1minfo >>> \033[0m Updating sweet-dns installation..."
             cp $tmpdst $dst
             echo -e "\033[1minfo >>> \033[0m Update successfull! \n
         For help use \033[1msweet-dns -h\033[0m \n "
-            exit 0
         fi
+        rm $tmpdst
     fi
+    exit 0
 fi
