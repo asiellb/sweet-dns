@@ -10,9 +10,16 @@ sweet-dns uses dnsmasq as the main dns server of the system running on localhost
 
 # Examples
 
-```bash
-sweet-dns -d dev
-sweet-dns -d dvp -d test
+- Add domain(s):
+```console
+sweet-dns -A -d dev
+sweet-dns -A -d dev -d test -d [...N]
+```
+
+- Delete domain(s):
+```console
+sweet-dns -D -d dev
+sweet-dns -D -d dev -d test -d [...N]
 ```
 
 # Installation
