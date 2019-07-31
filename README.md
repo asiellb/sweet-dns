@@ -20,7 +20,7 @@ sweet-dns -d dvp -d test
 Just run:
 
 ```console
-curl -L https://git.io/fjS4m | sudo bash
+curl -L https://git.io/fj9Jj | bash
 ```
 
 
