@@ -30,7 +30,7 @@ else
     else
         curl -L https://git.io/fj9Jz -o $tmpdst -s > /dev/null
         if cmp $tmpdst $dst > /dev/null; then
-            echo -e "\033[1minfo >>> \033[0msweet-dns already installed on your system! \n
+            echo -e "\033[1minfo >>> \033[0msweet-dns already installed on your system and up to date! \n
         For help use \033[1msweet-dns -h\033[0m \n "
             exit 1
         else
