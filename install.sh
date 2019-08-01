@@ -1,25 +1,25 @@
 #!/bin/bash
-# Set script debug
-# set -x
+#Definitions
 dst=/usr/local/bin/sweet-dns
 tmpdst=/private/tmp/sweet-dns
-##Check dependencies
+#Main
 which brew > /dev/null
 if [[ $? -eq 1 ]]; then
     echo "Homebrew must be installed, refer to https://brew.sh/"
     exit 1
 else
-    which dnsmasq > /dev/null
+    brew ls --versions dnsmasq > /dev/null
     if [[ $? -eq 1 ]]; then
         echo -e "\033[1minfo >>> \033[0m Running dnsmasq installation..."
         HOMEBREW_NO_AUTO_UPDATE=1 brew install dnsmasq
+    else
+        read -p $'\033[1minfo >>> \033[0m'"dnsmasq already installed! do you want reinstall? [Y/n] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then brew reinstall dnsmasq; fi
     fi
-    if [[ ! -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
-        sudo cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons
-    fi
-    # output=$(sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist)
+    if [[ ! -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then sudo cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons; fi
+    if ! sudo launchctl list | grep dnsmasq > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist; fi
     which sweet-dns > /dev/null
-
     if [[ $? -eq 1 ]]; then
         echo -e "\033[1minfo >>> \033[0m Running sweet-dns installation..."
         curl -L https://git.io/fj9Jz -o $dst -s > /dev/null
