@@ -6,6 +6,8 @@ prefix=$(brew --prefix)
 sweetdnsdir=$prefix/etc/sweet-dns
 sweetdnsconf=$prefix/etc/sweet-dns/dnsmasq.conf
 sweetdnstmp=$sweetdnsconf.tmp
+sweetdnsresolv=$sweetdnsdir/resolv.conf
+resolvconf=/etc/resolv.conf
 dnsmasqdir=$prefix/etc/dnsmasq/dnsmasq.d
 configdefault=$(brew --cellar)/dnsmasq/$(brew ls --versions dnsmasq | awk '{print $2}')/.bottle/etc/dnsmasq.conf
 dnsmasqconfig=$prefix/etc/dnsmasq.conf
@@ -59,6 +61,14 @@ config () {
                 if [[ ! -f  $fileregistries ]]; then bash -c "touch $fileregistries"; fi
             fi
         fi
+        #resolv conf
+        bash -c "cat <<EOIPFW > $sweetdnsdir/resolv.conf
+nameserver 127.0.0.1
+port 53
+EOF
+EOIPFW"
+        sudo bash -c "rm -rf $resolvconf"
+        sudo bash -c "cp -rf $sweetdnsresolv $resolvconf"
     else
         if ! cmp $dnsmasqconfig $sweetdnsconf > /dev/null; then
             read < /dev/tty -p $'\033[1m\e[31mWarn >>>\e[0m\033[0m'" Installation and previous configurations of dnsmasq found! do you want continue? [Y/n] " -n 1 -r
@@ -69,13 +79,10 @@ config () {
                 cp -rf $sweetdnsconf $dnsmasqconfig
             fi
         fi
+        if ! cmp $sweetdnsresolv $resolvconf > /dev/null; then
+            sudo bash -c "cp -rf $sweetdnsresolv $resolvconf"
+        fi
     fi
-    #resolv conf
-    sudo bash -c "cat <<EOIPFW > /etc/resolv.conf
-nameserver 127.0.0.1
-port 53
-EOF
-EOIPFW"
     #restart and exit
     restart
     exit 0
