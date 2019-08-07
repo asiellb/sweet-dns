@@ -3,44 +3,84 @@
 # Shell script to compress pdf using ghostscript lib.
 ##### Definitions
 prefix=$(brew --prefix)
-dnsdir=$prefix/etc/dnsmasq/dnsmasq.d
-tmpdnsfile=$prefix/etc/dnsmasq/dnsmasq.d/tmp
+sweetdnsdir=$prefix/etc/sweet-dns
+sweetdnsconf=$prefix/etc/sweet-dns/dnsmasq.conf
+sweetdnstmp=$sweetdnsconf.tmp
+dnsmasqdir=$prefix/etc/dnsmasq/dnsmasq.d
+configdefault=$(brew --cellar)/dnsmasq/$(brew ls --versions dnsmasq | awk '{print $2}')/.bottle/etc/dnsmasq.conf
+dnsmasqconfig=$prefix/etc/dnsmasq.conf
+dnsmasqbackup=$dnsmasqconfig.bak
+fileregistries=$dnsmasqdir/registries.conf
 tmpregfile=/private/tmp/registries.tmp
-configfile=$prefix/etc/dnsmasq.conf
-configbackup=$prefix/etc/dnsmasq/dnsmasq.conf.bak
-configdefault=$prefix/etc/dnsmasq/dnsmasq.conf.default
 configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
-fileregistries=$dnsdir/registries.conf
 ##### Functions
-usage() {
+usage () {
     #sweet-dns help
     echo -e "\033[1mHelp\033[0m \n
         \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] \n"
 }
-config() {
-    #config dnsmasq
-    if [[ ! -d $dnsdir ]]; then
-        bash -c "mkdir -v $dnsdir"
-    fi
-    if [[ -f $configfile ]]; then
-        if [[ ! -f $configdefault ]]; then bash -c "cp $configfile $configdefault"; fi
+restart () {
+    #restart dnsmasq service
+    if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
+        sudo launchctl stop homebrew.mxcl.dnsmasq
+        sudo launchctl start homebrew.mxcl.dnsmasq
     else
-        echo "ERROR - dnsmasq configuration: file $configfile not found!, please reinstall dnsmasq!"
-        if [[ -f $configbackup ]]; then bash -c "rm $configbackup"; fi
-        exit 1
-    fi
-    for config in "${configurations[@]}"; do
-        pattern=$(echo "$config" | tr -d '"')
-        output=$(bash -c "awk '1;/#${pattern%%=*}=/ && !found { for (i = 2; i <= NF; i++); print $config; found=1; next }' $configfile > $tmpdnsfile && mv $tmpdnsfile $configfile" 2>&1)
-    done
-    if [[ ! $? -eq 0 ]]; then
-        echo "ERROR - dnsmasq configuration: "$output
-        exit 1
-    else
-        bash -c "cp $configfile $configbackup"
+        sudo brew services restart dnsmasq
     fi
 }
-add() {
+config () {
+    #config sweet-dns
+    if [[ ! -f $sweetdnsconf ]]; then
+        if [[ ! -d $sweetdnsdir ]]; then bash -c "mkdir -p $sweetdnsdir"; fi
+        if [[ ! -f $configdefault ]]; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew reinstall dnsmasq > /dev/null
+            if [[ ! $? -eq 0 ]]; then
+                echo -e "\033[1m\e[31mError >>>\e[0m\033[0m sweet-dns configuration: dnsmasq config not found!, please reinstall dnsmasq and/or use brew doctor for problems!\n"
+                exit 1
+            fi
+        else
+            if [[ -f $dnsmasqconfig ]]; then
+                if [[ $dnsmasqbackup ]]; then bash -c "rm -rf $dnsmasqbackup";fi
+                bash -c "cp -rf $dnsmasqconfig $dnsmasqbackup"
+                if [[ $? -eq 0 ]]; then echo -e "\033[1mInfo >>>\033[0m Successfull backup of previous dnsmasq configuration file! was saved to: $dnsmasqbackup\n"; fi
+            fi
+            bash -c "cp -rf $configdefault $sweetdnsconf"
+            for config in "${configurations[@]}"; do
+                pattern=$(echo "$config" | tr -d '"')
+                output=$(bash -c "awk '1;/#${pattern%%=*}=/ && !found { for (i = 2; i <= NF; i++); print $config; found=1; next }' $sweetdnsconf > $sweetdnstmp && mv $sweetdnstmp $sweetdnsconf" 2>&1)
+            done
+            if [[ ! $? -eq 0 ]]; then
+                echo -e "\033[1m\e[31mError >>>\e[0m\033[0m sweet-dns configuration: "$output "\n"
+                exit 1
+            else
+                #config dnsmasq
+                bash -c "cp -rf $sweetdnsconf $dnsmasqconfig"
+                if [[ ! -d $dnsmasqdir ]]; then bash -c "mkdir -p $dnsmasqdir"; fi
+                if [[ ! -f  $fileregistries ]]; then bash -c "touch $fileregistries"; fi
+            fi
+        fi
+    else
+        if ! cmp $dnsmasqconfig $sweetdnsconf > /dev/null; then
+            read < /dev/tty -p $'\033[1m\e[31mWarn >>>\e[0m\033[0m'" Installation and previous configurations of dnsmasq found! do you want continue? [Y/n] " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                cp -rf $dnsmasqconfig $dnsmasqbackup
+                HOMEBREW_NO_AUTO_UPDATE=1 brew reinstall dnsmasq
+                cp -rf $sweetdnsconf $dnsmasqconfig
+            fi
+        fi
+    fi
+    #resolv conf
+    sudo bash -c "cat <<EOIPFW > /etc/resolv.conf
+nameserver 127.0.0.1
+port 53
+EOF
+EOIPFW"
+    #restart and exit
+    restart
+    exit 0
+}
+add () {
     #add resolver
     if [[ ! -f /etc/resolver/"$domain" ]]; then
         if [[ ! -d /etc/resolver ]]; then
@@ -56,9 +96,6 @@ add() {
         fi
     fi
     #add registries
-    if [[ ! -f  $fileregistries ]]; then
-        touch $fileregistries
-    fi
     if grep -q "address=/.$domain/127.0.0.1" $fileregistries; then
         existingdomain+=($domain)
     else
@@ -93,11 +130,12 @@ for arg in "$@"; do
     "--del")        set -- "$@" "-D" ;;
     "--delete")     set -- "$@" "-D" ;;
     "--remove")     set -- "$@" "-D" ;;
+    "--config")     set -- "$@" "-c" ;;
     *)              set -- "$@" "$arg"
   esac
 done
 OPTIND=1
-while getopts ":h:d:AD?" opt; do
+while getopts ":h:d:AD?c" opt; do
   case "$opt" in
     "h")    usage
             exit 0
@@ -111,17 +149,18 @@ while getopts ":h:d:AD?" opt; do
             ;;
     "D")    del=true
             ;;
+    "c")    configure=true
+            ;;
     *)      usage
             exit 1
   esac
 done
 shift $(expr $OPTIND - 1)
+if [[ $configure ]]; then
+    config
+fi
 if [[ $add || $del ]]; then
-    if [[ ${#domains[@]}  -gt 0 ]]; then
-        if [[ ! -f $configbackup ]]; then
-            config
-        fi
-    else
+    if [[ ${#domains[@]}  -eq 0 ]]; then
         echo -e "\033[1mWarning\033[0m \n
             At least an input domain is required to continue! \n
                 Use \033[1msweet-dns -h\033[0m for more help. \n"
@@ -133,13 +172,7 @@ if [[ $add || $del ]]; then
     if [[ $del ]]; then
         for domain in "${domains[@]}"; do del; done
     fi
-    #restart service
-    if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
-        sudo launchctl stop homebrew.mxcl.dnsmasq
-        sudo launchctl start homebrew.mxcl.dnsmasq
-    else
-        sudo brew services restart dnsmasq
-    fi
+    restart
     if [[ $? -eq 0 ]]; then
         if [[ $newdomain ]]; then
             if [[ ${#newdomain[@]}  > 1 ]]; then
