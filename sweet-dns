@@ -6,6 +6,8 @@ prefix=$(brew --prefix)
 sweetdnsdir=$prefix/etc/sweet-dns
 sweetdnsconf=$prefix/etc/sweet-dns/dnsmasq.conf
 sweetdnstmp=$sweetdnsconf.tmp
+sweetdnsdomains=$sweetdnsdir/domains.conf
+sweetdnsdomainstmp=$sweetdnsdir/domains.conf.tmp
 sweetdnsresolv=$sweetdnsdir/resolv.conf
 resolvconf=/etc/resolv.conf
 dnsmasqdir=$prefix/etc/dnsmasq/dnsmasq.d
@@ -83,6 +85,8 @@ EOIPFW"
             sudo bash -c "cp -rf $sweetdnsresolv $resolvconf"
         fi
     fi
+    #create domains file
+    if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
     #restart and exit
     restart
     exit 0
@@ -109,6 +113,9 @@ add () {
         sudo bash -c "echo address=/.$domain/127.0.0.1 >> $fileregistries"
         newdomain+=($domain)
     fi
+    if ! grep -q "$domain" $sweetdnsdomains; then
+       bash -c "echo $domain >> $sweetdnsdomains"
+    fi
 }
 del () {
     #delete resolver
@@ -125,6 +132,15 @@ del () {
         mv $tmpregfile $fileregistries
     fi
     deletedomain+=($domain)
+    #delete from domain file
+    pattern="$domain"
+    if grep -q $pattern $sweetdnsdomains; then
+        while read -r line
+        do
+          [[ ! $line =~ $pattern ]] && echo "$line"
+        done < $sweetdnsdomains > $sweetdnsdomainstmp
+        mv $sweetdnsdomainstmp $sweetdnsdomains
+    fi
 }
 ##### Main
 for arg in "$@"; do
