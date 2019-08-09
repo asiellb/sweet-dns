@@ -14,8 +14,8 @@ dnsmasqdir=$prefix/etc/dnsmasq/dnsmasq.d
 configdefault=$(brew --cellar)/dnsmasq/$(brew ls --versions dnsmasq | awk '{print $2}')/.bottle/etc/dnsmasq.conf
 dnsmasqconfig=$prefix/etc/dnsmasq.conf
 dnsmasqbackup=$dnsmasqconfig.bak
-fileregistries=$dnsmasqdir/registries.conf
-tmpregfile=/private/tmp/registries.tmp
+fileregistries=$dnsmasqdir/sweet-dns-registries.conf
+tmpregfile=/private/tmp/sweet-dns-registries.tmp
 configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
 ##### Functions
 usage () {
@@ -91,6 +91,20 @@ EOIPFW"
     restart
     exit 0
 }
+fix () {
+    if [[ -s $sweetdnsdomains ]]; then
+        sudo bash -c "rm -rf /etc/resolver/*"
+        bash -c "rm -rf $fileregistries"
+        bash -c "touch $fileregistries"
+        while IFS= read -r domain; do add; done <"$sweetdnsdomains"
+        #restart and exit
+        restart
+        exit 0
+    else
+        echo -e "\033[1m\e[31mWarn >>>\e[0m\033[0m empty $sweetdnsdomains file, nothing to fix!"
+        exit 1
+    fi
+}
 add () {
     #add resolver
     if [[ ! -f /etc/resolver/"$domain" ]]; then
@@ -130,6 +144,7 @@ del () {
           [[ ! $line =~ $pattern ]] && echo "$line"
         done < $fileregistries > $tmpregfile
         mv $tmpregfile $fileregistries
+        rm $tmpregfile
     fi
     deletedomain+=($domain)
     #delete from domain file
@@ -154,11 +169,12 @@ for arg in "$@"; do
     "--delete")     set -- "$@" "-D" ;;
     "--remove")     set -- "$@" "-D" ;;
     "--config")     set -- "$@" "-c" ;;
+    "--fix")        set -- "$@" "-f" ;;
     *)              set -- "$@" "$arg"
   esac
 done
 OPTIND=1
-while getopts ":h:d:AD?c" opt; do
+while getopts ":h:d:AD?cf" opt; do
   case "$opt" in
     "h")    usage
             exit 0
@@ -173,6 +189,8 @@ while getopts ":h:d:AD?c" opt; do
     "D")    del=true
             ;;
     "c")    configure=true
+            ;;
+    "f")    fix
             ;;
     *)      usage
             exit 1
