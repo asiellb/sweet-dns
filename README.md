@@ -22,6 +22,11 @@ sweet-dns -D -d dev
 sweet-dns -D -d dev -d test -d [...N]
 ```
 
+- Fix sweet-dns configurations problems
+```console
+sweet-dns -f
+```
+
 # Installation
 
 Just run:
