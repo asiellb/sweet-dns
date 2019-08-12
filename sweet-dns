@@ -94,7 +94,7 @@ fix () {
 use () {
     #sweet-dns help
     echo -e "\033[1mHelp\033[0m \n
-        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] \n"
+        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] \n"
 }
 rest () {
     #restart dnsmasq service

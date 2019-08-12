@@ -32,7 +32,7 @@ sweet-dns -f
 sweet-dns -s
 ```
 
-# Installation
+# Installation and update
 
 Just run:
 
