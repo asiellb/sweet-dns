@@ -18,6 +18,11 @@ fileregistries=$dnsmasqdir/sweet-dns-registries.conf
 tmpregfile=/private/tmp/sweet-dns-registries.tmp
 configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
 ##### Functions
+use () {
+    #sweet-dns help
+    echo -e "\033[1mHelp\033[0m \n
+        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] \n"
+}
 conf () {
     #config sweet-dns
     if [[ ! -f $sweetdnsconf ]]; then
@@ -91,11 +96,6 @@ fix () {
         exit 1
     fi
 }
-use () {
-    #sweet-dns help
-    echo -e "\033[1mHelp\033[0m \n
-        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] \n"
-}
 rest () {
     #restart dnsmasq service
     if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
@@ -164,50 +164,7 @@ show () {
     echo -e "\n"
     exit 0
 }
-##### Main
-for arg in "$@"; do
-  shift
-  case "$arg" in
-    "--help")       set -- "$@" "-h" ;;
-    "--domain")     set -- "$@" "-d" ;;
-    "--?")          set -- "$@" "-?" ;;
-    "--add")        set -- "$@" "-A" ;;
-    "--del")        set -- "$@" "-D" ;;
-    "--delete")     set -- "$@" "-D" ;;
-    "--remove")     set -- "$@" "-D" ;;
-    "--config")     set -- "$@" "-c" ;;
-    "--fix")        set -- "$@" "-f" ;;
-    "--show")       set -- "$@" "-s" ;;
-    *)              set -- "$@" "$arg"
-  esac
-done
-OPTIND=1
-while getopts ":h:d:AD?cfs" opt; do
-  case "$opt" in
-    "h")    use
-            exit 0
-            ;;
-    "d")    domains+=("$OPTARG")
-            ;;
-    "?")    use
-            exit 1
-            ;;
-    "A")    add=true
-            ;;
-    "D")    del=true
-            ;;
-    "c")    conf
-            ;;
-    "f")    fix
-            ;;
-    "s")    show
-            ;;
-    *)      use
-            exit 1
-  esac
-done
-shift $(expr $OPTIND - 1)
-if [[ $add || $del ]]; then
+exe () {
     if [[ ${#domains[@]}  -eq 0 ]]; then
         echo -e "\033[1mWarning\033[0m \n
             At least an input domain is required to continue! \n
@@ -282,9 +239,49 @@ if [[ $add || $del ]]; then
     else
         exit 1
     fi
-else
-    echo -e "\033[1mWarning\033[0m \n
-    At least -A or -D is required to continue! \n
-        Use \033[1msweet-dns -h\033[0m for more help. \n"
-    exit 1
-fi
+}
+##### Main
+for arg in "$@"; do
+  shift
+  case "$arg" in
+    "--help")       set -- "$@" "-h" ;;
+    "--domain")     set -- "$@" "-d" ;;
+    "--?")          set -- "$@" "-?" ;;
+    "--add")        set -- "$@" "-A" ;;
+    "--del")        set -- "$@" "-D" ;;
+    "--delete")     set -- "$@" "-D" ;;
+    "--remove")     set -- "$@" "-D" ;;
+    "--config")     set -- "$@" "-c" ;;
+    "--fix")        set -- "$@" "-f" ;;
+    "--show")       set -- "$@" "-s" ;;
+    *)              set -- "$@" "$arg"
+  esac
+done
+OPTIND=1
+while getopts ":h:d:AD?cfs" opt; do
+  case "$opt" in
+    "h")    use
+            exit 0
+            ;;
+    "d")    domains+=("$OPTARG")
+            ;;
+    "?")    use
+            exit 1
+            ;;
+    "A")    add=true
+            exe
+            ;;
+    "D")    del=true
+            exe
+            ;;
+    "c")    conf
+            ;;
+    "f")    fix
+            ;;
+    "s")    show
+            ;;
+    *)      use
+            exit 1
+  esac
+done
+shift $(expr $OPTIND - 1)
