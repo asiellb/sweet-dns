@@ -27,7 +27,7 @@ sweet-dns -D -d dev -d test -d [...N]
 sweet-dns -f
 ```
 
--Show domains
+- Show domains
 ```console
 sweet-dns -s
 ```
