@@ -18,21 +18,7 @@ fileregistries=$dnsmasqdir/sweet-dns-registries.conf
 tmpregfile=/private/tmp/sweet-dns-registries.tmp
 configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
 ##### Functions
-usage () {
-    #sweet-dns help
-    echo -e "\033[1mHelp\033[0m \n
-        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] \n"
-}
-restart () {
-    #restart dnsmasq service
-    if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
-        sudo launchctl stop homebrew.mxcl.dnsmasq
-        sudo launchctl start homebrew.mxcl.dnsmasq
-    else
-        sudo brew services restart dnsmasq
-    fi
-}
-config () {
+conf () {
     #config sweet-dns
     if [[ ! -f $sweetdnsconf ]]; then
         if [[ ! -d $sweetdnsdir ]]; then bash -c "mkdir -p $sweetdnsdir"; fi
@@ -88,7 +74,7 @@ EOIPFW"
     #create domains file
     if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
     #restart and exit
-    restart
+    rest
     exit 0
 }
 fix () {
@@ -98,11 +84,25 @@ fix () {
         bash -c "touch $fileregistries"
         while IFS= read -r domain; do add; done <"$sweetdnsdomains"
         #restart and exit
-        restart
+        rest
         exit 0
     else
         echo -e "\033[1m\e[31mWarn >>>\e[0m\033[0m empty $sweetdnsdomains file, nothing to fix!"
         exit 1
+    fi
+}
+use () {
+    #sweet-dns help
+    echo -e "\033[1mHelp\033[0m \n
+        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] \n"
+}
+rest () {
+    #restart dnsmasq service
+    if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
+        sudo launchctl stop homebrew.mxcl.dnsmasq
+        sudo launchctl start homebrew.mxcl.dnsmasq
+    else
+        sudo brew services restart dnsmasq
     fi
 }
 add () {
@@ -176,30 +176,27 @@ done
 OPTIND=1
 while getopts ":h:d:AD?cf" opt; do
   case "$opt" in
-    "h")    usage
+    "h")    use
             exit 0
             ;;
     "d")    domains+=("$OPTARG")
             ;;
-    "?")    usage
+    "?")    use
             exit 1
             ;;
     "A")    add=true
             ;;
     "D")    del=true
             ;;
-    "c")    configure=true
+    "c")    conf
             ;;
     "f")    fix
             ;;
-    *)      usage
+    *)      use
             exit 1
   esac
 done
 shift $(expr $OPTIND - 1)
-if [[ $configure ]]; then
-    config
-fi
 if [[ $add || $del ]]; then
     if [[ ${#domains[@]}  -eq 0 ]]; then
         echo -e "\033[1mWarning\033[0m \n
@@ -213,7 +210,7 @@ if [[ $add || $del ]]; then
     if [[ $del ]]; then
         for domain in "${domains[@]}"; do del; done
     fi
-    restart
+    rest
     if [[ $? -eq 0 ]]; then
         if [[ $newdomain ]]; then
             if [[ ${#newdomain[@]}  > 1 ]]; then
