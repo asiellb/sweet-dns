@@ -157,6 +157,13 @@ del () {
         mv $sweetdnsdomainstmp $sweetdnsdomains
     fi
 }
+show () {
+    #show sweet-dns domains
+    echo -e "\033[1mInfo >>>\033[0m sweet-dns´s current domains: \n"
+    while IFS= read -r domain; do echo "- $domain" ; done <"$sweetdnsdomains"
+    echo -e "\n"
+    exit 0
+}
 ##### Main
 for arg in "$@"; do
   shift
@@ -170,11 +177,12 @@ for arg in "$@"; do
     "--remove")     set -- "$@" "-D" ;;
     "--config")     set -- "$@" "-c" ;;
     "--fix")        set -- "$@" "-f" ;;
+    "--show")       set -- "$@" "-s" ;;
     *)              set -- "$@" "$arg"
   esac
 done
 OPTIND=1
-while getopts ":h:d:AD?cf" opt; do
+while getopts ":h:d:AD?cfs" opt; do
   case "$opt" in
     "h")    use
             exit 0
@@ -191,6 +199,8 @@ while getopts ":h:d:AD?cf" opt; do
     "c")    conf
             ;;
     "f")    fix
+            ;;
+    "s")    show
             ;;
     *)      use
             exit 1
