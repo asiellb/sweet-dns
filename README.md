@@ -27,6 +27,11 @@ sweet-dns -D -d dev -d test -d [...N]
 sweet-dns -f
 ```
 
+-Show domains
+```console
+sweet-dns -s
+```
+
 # Installation
 
 Just run:
