@@ -21,7 +21,7 @@ configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-addres
 use () {
     #sweet-dns help
     echo -e "\033[1mHelp\033[0m \n
-        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] \n"
+        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] | [ -u ]\n"
 }
 conf () {
     #config sweet-dns
@@ -93,6 +93,14 @@ fix () {
         exit 0
     else
         echo -e "\033[1m\e[31mWarn >>>\e[0m\033[0m empty $sweetdnsdomains file, nothing to fix!"
+        exit 1
+    fi
+}
+update () {
+    curl -Ls https://git.io/fj9Jj | bash
+    if [[ $? -eq 0 ]]; then
+        exit 0
+    else
         exit 1
     fi
 }
@@ -254,11 +262,12 @@ for arg in "$@"; do
     "--config")     set -- "$@" "-c" ;;
     "--fix")        set -- "$@" "-f" ;;
     "--show")       set -- "$@" "-s" ;;
+    "--update")     set -- "$@" "-u" ;;
     *)              set -- "$@" "$arg"
   esac
 done
 OPTIND=1
-while getopts ":h:d:AD?cfs" opt; do
+while getopts ":h:d:AD?cfsu" opt; do
   case "$opt" in
     "h")    use
             exit 0
@@ -279,6 +288,8 @@ while getopts ":h:d:AD?cfs" opt; do
     "f")    fix
             ;;
     "s")    show
+            ;;
+    "u")    update
             ;;
     *)      use
             exit 1

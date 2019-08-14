@@ -32,10 +32,12 @@ sweet-dns -f
 sweet-dns -s
 ```
 
-# Installation and update
+- Update
+```console
+sweet-dns -u
+```
 
-Just run:
-
+# Installation
 ```console
 curl -L https://git.io/fj9Jj | bash
 ```
