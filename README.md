@@ -37,6 +37,11 @@ sweet-dns -s
 sweet-dns -u
 ```
 
+- Reload configurations
+```console
+sweet-dns -r
+```
+
 # Installation
 ```console
 curl -L https://git.io/fj9Jj | bash
