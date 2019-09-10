@@ -21,7 +21,7 @@ configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-addres
 use () {
     #sweet-dns help
     echo -e "\033[1mHelp\033[0m \n
-        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] | [ -u ]\n"
+        \033[1msweet-dns\033[0m [[-A | -D ] [ -d [domain1] -d [domainN] ]] | [ -h ] | [ -f ] | [ -s ] | [ -u ] | [ -r ]\n"
 }
 conf () {
     #config sweet-dns
@@ -263,36 +263,43 @@ for arg in "$@"; do
     "--fix")        set -- "$@" "-f" ;;
     "--show")       set -- "$@" "-s" ;;
     "--update")     set -- "$@" "-u" ;;
+    "--restart")    set -- "$@" "-r" ;;
     *)              set -- "$@" "$arg"
   esac
 done
-OPTIND=1
-while getopts ":h:d:AD?cfsu" opt; do
-  case "$opt" in
-    "h")    use
-            exit 0
-            ;;
-    "d")    domains+=("$OPTARG")
-            ;;
-    "?")    use
-            exit 1
-            ;;
-    "A")    add=true
+case "$1" in
+    "-A" | "-D") if [[ $1 ==  "-A" ]]; then add=true; else del=true; fi
+            while getopts ":d:" opt; do
+              case "$opt" in
+                "d")    domains+=("$OPTARG")
+                        ;;
+              esac
+            done
             exe
+            shift $((OPTIND-1))
             ;;
-    "D")    del=true
-            exe
+    *)      while getopts "h?cfsur" opt; do
+              case "${opt}" in
+                "h")    use
+                        exit 0
+                        ;;
+                "?")    use
+                        exit 1
+                        ;;
+                "c")    conf
+                        ;;
+                "f")    fix
+                        ;;
+                "s")    show
+                        ;;
+                "u")    update
+                        ;;
+                "r")    rest
+                        ;;
+                *)      use
+                        exit 1
+              esac
+            done
+            shift $((OPTIND-1))
             ;;
-    "c")    conf
-            ;;
-    "f")    fix
-            ;;
-    "s")    show
-            ;;
-    "u")    update
-            ;;
-    *)      use
-            exit 1
-  esac
-done
-shift $(expr $OPTIND - 1)
+esac
