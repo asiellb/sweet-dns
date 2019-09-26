@@ -10,9 +10,4 @@ netservice=$(networksetup -listnetworkserviceorder | grep $iface | sed s/[,]/""/
 #Main
 cat /private/var/run/resolv.conf > $dnsmasqdir/connection_resolv.conf
 networksetup -setdnsservers $netservice 127.0.0.1
-
-if [[ ! $? -eq 0 ]]; then
-    exit 1
-else
-    exit 0
-fi
+if [[ ! $? -eq 0 ]]; then exit 1; else exit 0; fi
