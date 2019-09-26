@@ -32,7 +32,6 @@ conf () {
     #config sweet-dns
     if [[ ! -f $sweetdnsconf ]]; then
         if [[ ! -d $sweetdnsdir ]]; then bash -c "mkdir -p $sweetdnsdir"; fi
-        if [[ ! -d $sharedir ]]; then bash -c "ln -s $optdir/share/ $sharedir/"; fi
         if [[ ! -f $configdefault ]]; then
             HOMEBREW_NO_AUTO_UPDATE=1 brew reinstall dnsmasq > /dev/null
             if [[ ! $? -eq 0 ]]; then
@@ -82,6 +81,9 @@ EOIPFW"
             sudo bash -c "cp -rf $sweetdnsresolv $resolvconf"
         fi
     fi
+    #create simbolic link to shared foder
+    if [[ ! -d $sharedir ]]; then bash -c "mkdir -p $sharedir/"; fi
+    if [[ ! -f $sharedir/bin/networkchange.sh ]]; then ln -sf $optdir/share/ $sharedir/; fi
     #create domains file
     if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
     #daemons configuration
@@ -89,6 +91,8 @@ EOIPFW"
     if [[ ! -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then sudo cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons; fi
     if ! sudo launchctl list | grep networkchange > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/sweet-dns.networkchange.plist; fi
     if ! sudo launchctl list | grep dnsmasq > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist; fi
+    #call networkchange on config
+    bash $sharedir/bin/networkchange.sh
     #restart and exit
     rest
     exit 0

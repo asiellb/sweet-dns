@@ -7,7 +7,7 @@ optdir=/usr/local/opt/sweet-dns
 dstdir=/usr/local/bin/sweet-dns
 tmpzip=/private/tmp/sweet-dns-master.zip
 tmpdst=/private/tmp/sweet-dns
-#Main
+# Main
 echo -e "\033[1mInfo >>>\033[0m Running sweet-dns installation..."
 which brew > /dev/null
 if [[ $? -eq 1 ]]; then
@@ -22,14 +22,14 @@ else
     which sweet-dns > /dev/null
     if [[ $? -eq 1 ]]; then
         echo -e "\033[1mInfo >>>\033[0m Running sweet-dns installation..."
-        wget -O $tmpzip https://github.com/asiellb/sweet-dns/archive/master.zip
-        unzip -joq $tmpzip 'sweet-dns-master/*' -d $optdir/sweet-dns/
-        ln -s $optdir/bin/sweet-dns $dstdir
+        wget -O $tmpzip https://github.com/asiellb/sweet-dns/archive/master.zip > /dev/null
+        tar -xvf $tmpzip -C $optdir/ --strip 1
+        ln -sf $optdir/bin/sweet-dns $dstdir
         chmod +x $dstdir
         message="\033[1mInfo >>>\033[0m Installation successfull! \n
         For help use \033[1msweet-dns -h\033[0m \n "
     else
-        curl -L https://git.io/fj9Jz -o $tmpdst -s > /dev/null
+        curl -L https://raw.githubusercontent.com/asiellb/sweet-dns/master/bin/sweet-dns -o $tmpdst -s > /dev/null
         if cmp $tmpdst $dstdir > /dev/null; then
             message="\033[1mInfo >>>\033[0m sweet-dns already installed on your system and up to date! \n
             For help use \033[1msweet-dns -h\033[0m \n "
@@ -42,18 +42,17 @@ else
                 For help use \033[1msweet-dns -h\033[0m \n "
             else
                 wget -O $tmpzip https://github.com/asiellb/sweet-dns/archive/master.zip
-                unzip -joq $tmpzip 'sweet-dns-master/*' -d $optdir/sweet-dns/
-                ln -s $optdir/bin/sweet-dns $dstdir
+                tar -xvf $tmpzip -C $optdir/ --strip 1
+                ln -sf $optdir/bin/sweet-dns $dstdir
                 chmod +x $dstdir
                 message="\033[1mInfo >>>\033[0m Full update successfull! \n
                 For help use \033[1msweet-dns -h\033[0m \n "
             fi
-
         fi
         rm -f $tmpdst
         rm -f $tmpzip
     fi
-    bash -x sweet-dns -c
+    sweet-dns -c
     if [[ $? -eq 0 ]]; then
         echo -e $message
         exit 0
