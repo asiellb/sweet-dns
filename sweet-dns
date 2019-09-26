@@ -1,9 +1,14 @@
 #! /bin/bash
-# sweet-dns #
-# Shell script to compress pdf using ghostscript lib.
-##### Definitions
+#
+# Name: sweet-dns
+# Description: utility script to use local DNS on local environments for MacOS.
+# Version: 0.0.2a
+#
+# Definitions
 prefix=$(brew --prefix)
 sweetdnsdir=$prefix/etc/sweet-dns
+sharedir=$prefix/share/sweet-dns
+optdir=$prefix/opt/sweet-dns
 sweetdnsconf=$prefix/etc/sweet-dns/dnsmasq.conf
 sweetdnstmp=$sweetdnsconf.tmp
 sweetdnsdomains=$sweetdnsdir/domains.conf
@@ -16,8 +21,8 @@ dnsmasqconfig=$prefix/etc/dnsmasq.conf
 dnsmasqbackup=$dnsmasqconfig.bak
 fileregistries=$dnsmasqdir/sweet-dns-registries.conf
 tmpregfile=/private/tmp/sweet-dns-registries.tmp
-configurations=('"port=53"' '"resolv-file=/var/run/resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
-##### Functions
+configurations=('"port=53"' '"resolv-file='$dnsmasqdir'/connection_resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
+# Functions
 use () {
     #sweet-dns help
     echo -e "\033[1mHelp\033[0m \n
@@ -27,6 +32,7 @@ conf () {
     #config sweet-dns
     if [[ ! -f $sweetdnsconf ]]; then
         if [[ ! -d $sweetdnsdir ]]; then bash -c "mkdir -p $sweetdnsdir"; fi
+        if [[ ! -d $sharedir ]]; then bash -c "ln -s $optdir/share/ $sharedir/"; fi
         if [[ ! -f $configdefault ]]; then
             HOMEBREW_NO_AUTO_UPDATE=1 brew reinstall dnsmasq > /dev/null
             if [[ ! $? -eq 0 ]]; then
@@ -78,6 +84,11 @@ EOIPFW"
     fi
     #create domains file
     if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
+    #daemons configuration
+    if [[ ! -f /Library/LaunchDaemons/sweet-dns.networkchange.plist ]]; then sudo cp -v $optdir/sweet-dns.networkchange.plist /Library/LaunchDaemons; fi
+    if [[ ! -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then sudo cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons; fi
+    if ! sudo launchctl list | grep networkchange > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/sweet-dns.networkchange.plist; fi
+    if ! sudo launchctl list | grep dnsmasq > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist; fi
     #restart and exit
     rest
     exit 0
@@ -248,7 +259,7 @@ exe () {
         exit 1
     fi
 }
-##### Main
+# Main
 for arg in "$@"; do
   shift
   case "$arg" in
