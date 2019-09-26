@@ -21,7 +21,7 @@ dnsmasqconfig=$prefix/etc/dnsmasq.conf
 dnsmasqbackup=$dnsmasqconfig.bak
 fileregistries=$dnsmasqdir/sweet-dns-registries.conf
 tmpregfile=/private/tmp/sweet-dns-registries.tmp
-configurations=('"port=53"' '"resolv-file='$dnsmasqdir'/connection_resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
+configurations=('"port=53"' '"resolv-file='$sweetdnsdir'/connection_resolv.conf"' '"listen-address=127.0.0.1"' '"conf-dir=/usr/local/etc/dnsmasq/dnsmasq.d/,*.conf"')
 # Functions
 use () {
     #sweet-dns help
