@@ -83,7 +83,7 @@ EOIPFW"
     fi
     #create simbolic link to shared foder
     if [[ ! -d $sharedir ]]; then bash -c "mkdir -p $sharedir/"; fi
-    if [[ ! -f $sharedir/bin/networkchange.sh ]]; then ln -sf $optdir/share/ $sharedir/; fi
+    if [[ ! -f $sharedir/bin/networkchange.sh ]]; then ln -sf $optdir/share/bin $sharedir/bin; fi
     #create domains file
     if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
     #daemons configuration
