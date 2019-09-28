@@ -7,6 +7,8 @@ optdir=/usr/local/opt/sweet-dns
 dstdir=/usr/local/bin/sweet-dns
 tmpzip=/private/tmp/sweet-dns-master.zip
 tmpdst=/private/tmp/sweet-dns
+# Directories
+if [[ ! -d $$optdir ]]; then bash -c "mkdir -p $optdir/"; fi
 # Main
 echo -e "\033[1mInfo >>>\033[0m Running sweet-dns installation..."
 which brew > /dev/null
