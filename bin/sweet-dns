@@ -83,7 +83,7 @@ EOIPFW"
     fi
     #create simbolic link to shared foder
     if [[ ! -d $sharedir ]]; then bash -c "mkdir -p $sharedir/"; fi
-    if [[ ! -f $sharedir/bin/networkchange.sh ]]; then ln -sf $optdir/share/bin $sharedir/bin; fi
+    if [[ ! -f $sharedir/bin/networkchange ]]; then ln -sf $optdir/share/bin $sharedir/bin; fi
     #create domains file
     if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
     #daemons configuration
@@ -92,7 +92,7 @@ EOIPFW"
     if ! sudo launchctl list | grep networkchange > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/sweet-dns.networkchange.plist; fi
     if ! sudo launchctl list | grep dnsmasq > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist; fi
     #call networkchange on config
-    bash $sharedir/bin/networkchange.sh
+    bash $sharedir/bin/networkchange
     #restart and exit
     rest
     exit 0

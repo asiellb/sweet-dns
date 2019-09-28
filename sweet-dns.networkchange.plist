@@ -9,7 +9,7 @@
   <true/>
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/share/sweet-dns/bin/networkchange.sh</string>
+    <string>/usr/local/share/sweet-dns/bin/networkchange</string>
   </array>
   <key>WatchPaths</key>
   <array>
