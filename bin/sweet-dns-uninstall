@@ -7,4 +7,6 @@ optdir=$prefix/opt/sweet-dns
 dnsmasqdir=$prefix/etc/dnsmasq/dnsmasq.d
 # Main
 bash -c "rm -rf $sweetdnsdir $sharedir $optdir $dnsmasqdir"
+sudo launchctl remove sweet-dns.networkchange
+sudo rm -rf /Library/LaunchDaemons/sweet-dns.networkchange.plist
 if [[ ! $? -eq 0 ]]; then exit 1; else exit 0; fi
