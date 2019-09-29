@@ -23,7 +23,6 @@ else
     fi
     which sweet-dns > /dev/null
     if [[ $? -eq 1 ]]; then
-        echo -e "\033[1mInfo >>>\033[0m Running sweet-dns installation..."
         wget -qO $tmpzip https://github.com/asiellb/sweet-dns/archive/master.zip > /dev/null
         tar -xf $tmpzip -C $optdir/ --strip 1
         ln -sf $optdir/bin/sweet-dns $dstdir
