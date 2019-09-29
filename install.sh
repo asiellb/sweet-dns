@@ -25,7 +25,7 @@ else
     if [[ $? -eq 1 ]]; then
         echo -e "\033[1mInfo >>>\033[0m Running sweet-dns installation..."
         wget -O $tmpzip https://github.com/asiellb/sweet-dns/archive/master.zip > /dev/null
-        tar -xvf $tmpzip -C $optdir/ --strip 1
+        tar -xf $tmpzip -C $optdir/ --strip 1
         ln -sf $optdir/bin/sweet-dns $dstdir
         chmod +x $dstdir
         message="\033[1mInfo >>>\033[0m Installation successfull! \n
@@ -44,7 +44,7 @@ else
                 For help use \033[1msweet-dns -h\033[0m \n "
             else
                 wget -O $tmpzip https://github.com/asiellb/sweet-dns/archive/master.zip
-                tar -xvf $tmpzip -C $optdir/ --strip 1
+                tar -xf $tmpzip -C $optdir/ --strip 1
                 ln -sf $optdir/bin/sweet-dns $dstdir
                 chmod +x $dstdir
                 message="\033[1mInfo >>>\033[0m Full update successfull! \n
