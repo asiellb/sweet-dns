@@ -10,6 +10,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/usr/local/share/sweet-dns/bin/networkchange</string>
+    <string>--set</string>
   </array>
   <key>WatchPaths</key>
   <array>
