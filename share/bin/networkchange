@@ -3,8 +3,7 @@
 # sweet-dns network changes watch utility script
 #
 # Definitions
-prefix=$(brew --prefix)
-sweetdnsdir=$prefix/etc/sweet-dns
+sweetdnsdir=/usr/local/etc/sweet-dns
 iface=$(route get example.com | grep interface | awk '{print $2}')
 netservice=$(networksetup -listnetworkserviceorder | grep $iface | sed s/[,]/""/g | awk '{print $3}')
 # Functions
