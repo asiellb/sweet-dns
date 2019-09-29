@@ -87,8 +87,8 @@ EOIPFW"
     #create domains file
     if [[ ! -f  $sweetdnsdomains ]]; then bash -c "touch $sweetdnsdomains"; fi
     #daemons configuration
-    if [[ ! -f /Library/LaunchDaemons/sweet-dns.networkchange.plist ]]; then sudo cp -v $optdir/sweet-dns.networkchange.plist /Library/LaunchDaemons; fi
-    if [[ ! -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then sudo cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons; fi
+    if [[ ! -f /Library/LaunchDaemons/sweet-dns.networkchange.plist ]]; then sudo bash -c "cp -rf $optdir/sweet-dns.networkchange.plist /Library/LaunchDaemons"; fi
+    if [[ ! -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then sudo bash -c "cp -rf $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons"; fi
     if ! sudo launchctl list | grep networkchange > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/sweet-dns.networkchange.plist; fi
     if ! sudo launchctl list | grep dnsmasq > /dev/null; then sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist; fi
     #call networkchange on config
