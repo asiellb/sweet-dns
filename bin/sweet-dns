@@ -70,7 +70,6 @@ EOIPFW"
     else
         if ! cmp $dnsmasqconfig $sweetdnsconf > /dev/null; then
             read < /dev/tty -p $'\033[1m\e[31mWarn >>>\e[0m\033[0m'" Installation and previous configurations of dnsmasq found! do you want continue? [Y/n] " -n 1 -r
-            echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 cp -rf $dnsmasqconfig $dnsmasqbackup
                 HOMEBREW_NO_AUTO_UPDATE=1 brew reinstall dnsmasq
