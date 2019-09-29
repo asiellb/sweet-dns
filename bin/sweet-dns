@@ -42,7 +42,7 @@ conf () {
             if [[ -f $dnsmasqconfig ]]; then
                 if [[ $dnsmasqbackup ]]; then bash -c "rm -rf $dnsmasqbackup";fi
                 bash -c "cp -rf $dnsmasqconfig $dnsmasqbackup"
-                if [[ $? -eq 0 ]]; then echo -e "\033[1mInfo >>>\033[0m Successfull backup of previous dnsmasq configuration file! was saved to: $dnsmasqbackup\n"; fi
+                if [[ $? -eq 0 ]]; then echo -e "\033[1mInfo >>>\033[0m Successfull backup of previous dnsmasq configuration file! was saved to: $dnsmasqbackup"; fi
             fi
             bash -c "cp -rf $configdefault $sweetdnsconf"
             for config in "${configurations[@]}"; do
