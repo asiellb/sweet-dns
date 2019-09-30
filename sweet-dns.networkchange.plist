@@ -19,6 +19,7 @@
     <key>ThrotteInterval</key>
     <integer>0</integer> <!-- run at most every 0 seconds, by default 10 -->
     <key>RunAtLoad</key>
+    <key>KeepAlive</key>
     <true/>
     <key>StandardErrorPath</key>
     <string>/usr/local/var/log/sweet-dns/error.networkchange.log</string>

@@ -4,14 +4,32 @@
 #
 # Definitions
 sweetdnsdir=/usr/local/etc/sweet-dns
-iface=$(route get example.com | grep interface | awk '{print $2}')
-netservice=$(networksetup -listnetworkserviceorder | grep $iface | sed s/[,]/""/g | awk '{print $3}')
+wasdown=0
 # Functions
 netsrv () {
     echo $netservice
     exit 0
 }
 setting () {
+    # Wait loop if network down
+    . /etc/rc.common
+    CheckForNetwork
+    while [ "${NETWORKUP}" != "-YES-" ]
+    do
+            sleep 5
+            NETWORKUP=
+            CheckForNetwork
+            wasdown=1
+    done
+    # Netservice definitions
+    iface=$(route get example.com | grep interface | awk '{print $2}')
+    netservice=$(networksetup -listnetworkserviceorder | grep $iface | sed s/[,]/""/g | awk '{print $3}')
+    # If it was down clean resolv.conf
+    if [[ $wasdown != 0 ]]; then
+        networksetup -setdnsservers $netservice empty
+    fi
+    cat /private/var/run/resolv.conf
+    # Config resolv.conf
     if [[ ! -d $sweetdnsdir ]]; then bash -c "mkdir -p $sweetdnsdir"; fi
     if  ! grep -q "nameserver 127.0.0.1" /private/var/run/resolv.conf; then
        cat /private/var/run/resolv.conf > $sweetdnsdir/connection_resolv.conf
