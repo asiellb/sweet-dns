@@ -12,7 +12,6 @@ netsrv () {
     exit 0
 }
 setting () {
-    networksetup -setdnsservers $netservice empty
     if [[ ! -d $sweetdnsdir ]]; then bash -c "mkdir -p $sweetdnsdir"; fi
     if  ! grep -q "nameserver 127.0.0.1" /private/var/run/resolv.conf; then
        cat /private/var/run/resolv.conf > $sweetdnsdir/connection_resolv.conf
