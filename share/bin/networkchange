@@ -5,7 +5,7 @@
 # Definitions
 sweetdnsdir=/usr/local/etc/sweet-dns
 iface=$(route get default | grep interface | awk '{print $2}')
-netservice=$(networksetup -listnetworkserviceorder | grep $iface | sed s/[,]/""/g | awk '{print $3}')
+netservice=$(networksetup -listnetworkserviceorder | grep "$iface" | awk -F'Hardware Port: ' '{print $2}' | awk -F',' '{print $1}')
 # Functions
 netsrv () {
     echo $netservice
