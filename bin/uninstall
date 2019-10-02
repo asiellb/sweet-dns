@@ -9,4 +9,6 @@ dnsmasqdir=$prefix/etc/dnsmasq/dnsmasq.d
 bash -c "rm -rf $sweetdnsdir $sharedir $optdir $dnsmasqdir"
 sudo launchctl remove sweet-dns.networkchange
 sudo rm -rf /Library/LaunchDaemons/sweet-dns.networkchange.plist
+sudo rm -rf /etc/resolv.conf
+sudo ln -sf /var/run/resolv.conf /etc/resolv.conf
 if [[ ! $? -eq 0 ]]; then exit 1; else exit 0; fi
